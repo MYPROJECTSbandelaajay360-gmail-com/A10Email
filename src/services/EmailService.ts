@@ -3,10 +3,27 @@ import { validateEnv } from '../config/env';
 import { SMTPProvider } from './providers/SMTPProvider';
 import { SendGridProvider } from './providers/SendGridProvider';
 import { SESProvider } from './providers/SESProvider';
+import { ConsoleProvider } from './providers/ConsoleProvider';
 import EmailLog from '../models/EmailLog';
 import { TemplateService } from './TemplateService';
 import { EmailOptions, EmailResult } from '../types';
-import { fetchLogoAsBuffer } from '../utils/logoUtils';
+
+// Admin invite email data interface
+interface AdminInviteData {
+  email: string;
+  role: string;
+  inviteLink: string;
+  expiresAt: Date;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  department?: string;
+  employeeId?: string;
+  salary?: string | number;
+  joiningDate?: string;
+  reportingManager?: string;
+}
 
 export class EmailService {
   private static provider: any;
@@ -24,6 +41,9 @@ export class EmailService {
         case 'smtp':
           this.provider = new SMTPProvider();
           break;
+        case 'console':
+          this.provider = new ConsoleProvider();
+          break;
         default:
           throw new Error(`Unknown email provider: ${this.env.EMAIL_PROVIDER}`);
       }
@@ -32,6 +52,12 @@ export class EmailService {
   }
 
   static async sendEmail(options: EmailOptions): Promise<EmailResult> {
+    console.log('[EmailService] sendEmail called', {
+      to: options.to,
+      subject: options.subject,
+      provider: this.env.EMAIL_PROVIDER
+    });
+
     try {
       let html = options.html;
       let text = options.text;
@@ -84,12 +110,14 @@ export class EmailService {
         template: options.template,
         messageId: result.messageId,
       });
+      console.log('[EmailService] Email sent successfully!', result.messageId);
 
       return {
         success: true,
         messageId: result.messageId,
       };
     } catch (error: any) {
+      console.error('[EmailService] Email send failed:', error);
       logger.error('Email send failed', {
         to: options.to,
         subject: options.subject,
@@ -126,69 +154,31 @@ export class EmailService {
   }
 
   // Convenience methods
-  
+
   /**
-   * Send admin invite email with logo as CID attachment (bulletproof for Outlook)
+   * Send admin invite email (employee registration)
    */
-  static async sendAdminInviteEmail(
-    email: string,
-    role: string,
-    inviteLink: string,
-    expiresAt: Date,
-    team?: string,
-    department?: string
-  ) {
-    // Always use CID attachment - fetch logo from URL and attach inline
-    // This is the only bulletproof method for Outlook
-    let logoAttachment: Array<{
-      filename: string;
-      content: Buffer;
-      contentType: string;
-      cid: string;
-    }> | undefined = undefined;
-    
-    try {
-      logger.info('Fetching logo for CID attachment', { email });
-      
-      // Fetch logo from the hosted URL (imgbb.co)
-      const logoBuffer = await fetchLogoAsBuffer('https://i.ibb.co/Zt9jNcs/logo.png');
-      
-      if (logoBuffer) {
-        logoAttachment = [{
-          filename: 'logo.png',
-          content: logoBuffer,
-          contentType: 'image/png',
-          cid: 'extrahand-logo', // Must match src="cid:extrahand-logo" in template
-        }];
-        logger.info('Logo attached with CID successfully', {
-          email,
-          logoSize: logoBuffer.length,
-          cid: 'extrahand-logo',
-        });
-      } else {
-        logger.warn('Logo fetch failed, email will be sent without logo', { email });
-      }
-    } catch (error: any) {
-      logger.error('Failed to fetch logo for CID attachment', {
-        error: error.message,
-        stack: error.stack,
-        email,
-      });
-      // Continue without logo - template will show broken image or nothing
-    }
+  static async sendAdminInviteEmail(data: AdminInviteData) {
+    console.log('[EmailService] sendAdminInviteEmail called', { email: data.email, role: data.role });
 
     return this.sendEmail({
-      to: email,
-      subject: "You've been invited to join ExtraHand Partner Onboarding Platform Team",
+      to: data.email,
+      subject: "Welcome! Complete Your A10 Admin Registration",
       template: 'admin_invite',
       data: {
-        role,
-        team,
-        department,
-        inviteLink,
-        expiresAt,
+        role: data.role,
+        name: data.name,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+        department: data.department,
+        employeeId: data.employeeId,
+        salary: data.salary,
+        joiningDate: data.joiningDate,
+        reportingManager: data.reportingManager,
+        inviteLink: data.inviteLink,
+        expiresAt: data.expiresAt,
       },
-      attachments: logoAttachment, // CID attachment - bulletproof for Outlook
       metadata: { type: 'admin_invite' },
     });
   }
@@ -196,20 +186,20 @@ export class EmailService {
   static async sendAccountCreatedEmail(email: string, name: string, phone?: string) {
     return this.sendEmail({
       to: email,
-      subject: 'Your ExtraHand Account is Ready!',
+      subject: 'Your A10 Admin Account is Ready!',
       template: 'account_created',
       data: {
         name,
         phone,
         loginUrl: `${this.env.WEB_APP_URL}/login`,
-        supportEmail: 'support@extrahand.in',
+        supportEmail: 'support@a10.com',
       },
       metadata: { type: 'account_created' },
     });
   }
 
   /**
-   * Send password reset email with logo as CID attachment (bulletproof for Outlook)
+   * Send password reset email
    */
   static async sendPasswordResetEmail(
     email: string,
@@ -219,63 +209,23 @@ export class EmailService {
   ) {
     const formattedExpiresAt = expiresAt
       ? expiresAt.toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        })
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
       : undefined;
-
-    // Always use CID attachment - fetch logo from URL and attach inline
-    // This is the only bulletproof method for Outlook
-    let logoAttachment: Array<{
-      filename: string;
-      content: Buffer;
-      contentType: string;
-      cid: string;
-    }> | undefined = undefined;
-    
-    try {
-      logger.info('Fetching logo for CID attachment', { email });
-      
-      // Fetch logo from the hosted URL (imgbb.co)
-      const logoBuffer = await fetchLogoAsBuffer('https://i.ibb.co/Zt9jNcs/logo.png');
-      
-      if (logoBuffer) {
-        logoAttachment = [{
-          filename: 'logo.png',
-          content: logoBuffer,
-          contentType: 'image/png',
-          cid: 'extrahand-logo', // Must match src="cid:extrahand-logo" in template
-        }];
-        logger.info('Logo attached with CID successfully', {
-          email,
-          logoSize: logoBuffer.length,
-          cid: 'extrahand-logo',
-        });
-      } else {
-        logger.warn('Logo fetch failed, email will be sent without logo', { email });
-      }
-    } catch (error: any) {
-      logger.error('Failed to fetch logo for CID attachment', {
-        error: error.message,
-        stack: error.stack,
-        email,
-      });
-      // Continue without logo - template will show broken image or nothing
-    }
 
     return this.sendEmail({
       to: email,
-      subject: 'Reset Your ExtraHand Admin Password',
+      subject: 'Reset Your A10 Admin Password',
       template: 'password_reset',
       data: {
         name: name || email.split('@')[0],
         resetLink,
         expiresAt: formattedExpiresAt,
       },
-      attachments: logoAttachment, // CID attachment - bulletproof for Outlook
       metadata: { type: 'password_reset' },
     });
   }

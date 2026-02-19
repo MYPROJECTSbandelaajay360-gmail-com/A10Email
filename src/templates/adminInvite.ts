@@ -2,26 +2,36 @@ import { EmailTemplate } from "../types";
 
 export interface AdminInviteTemplateData {
   role: string;
-  team?: string;
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
   department?: string;
+  employeeId?: string;
+  salary?: string | number;
+  joiningDate?: string;
+  reportingManager?: string;
   inviteLink: string;
   expiresAt: Date;
-  name?: string;
 }
-
-import { EXTRAHAND_LOGO_SVG } from "./logo";
 
 export const adminInviteTemplate: EmailTemplate = {
   name: "admin_invite",
-  subject: "You've been invited to join ExtraHand Admin Team",
+  subject: "Welcome! Complete Your CognitBotz HRMS Registration",
 
   html: (data: AdminInviteTemplateData) => {
-    const roleDisplay = data.role.charAt(0).toUpperCase() + data.role.slice(1);
+    const roleDisplay = data.role ? data.role.charAt(0).toUpperCase() + data.role.slice(1) : 'Employee';
     const expiryDate = new Date(data.expiresAt).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
+    const joiningDateFormatted = data.joiningDate ? new Date(data.joiningDate).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }) : null;
+    const salaryFormatted = data.salary ? `₹${Number(data.salary).toLocaleString('en-IN')}` : null;
 
     return `
 <!DOCTYPE html>
@@ -30,284 +40,210 @@ export const adminInviteTemplate: EmailTemplate = {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="x-apple-disable-message-reformatting">
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  <title>You're Invited to Join ExtraHand Admin Team</title>
-  <!--[if mso]>
-  <style type="text/css">
-    body, table, td {font-family: Arial, sans-serif !important;}
-  </style>
-  <![endif]-->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <style type="text/css">
-    /* Reset and Base Styles */
+  <title>Welcome to CognitBotz HRMS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
     body {
       margin: 0;
       padding: 0;
-      background: #f8fafc;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+      background: #f0f4f8;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
-    
-    table {
-      border-collapse: collapse;
-      border-spacing: 0;
-    }
-    
-    img {
-      border: 0;
-      display: block;
-      outline: none;
-      text-decoration: none;
-    }
-    
-    /* Prevent auto-linking on iOS */
-    a[x-apple-data-detectors] {
-      color: inherit !important;
-      text-decoration: none !important;
-    }
-
-    /* Mobile Responsive Styles */
-    @media only screen and (max-width: 600px) {
-      .container {
-        width: 100% !important;
-        padding: 16px !important;
-      }
-      
-      .content-wrapper {
-        width: 100% !important;
-        border-radius: 12px !important;
-      }
-      
-      .header-bar {
-        font-size: 10px !important;
-        padding: 10px 16px !important;
-      }
-      
-      .header-section {
-        padding: 28px 20px 20px !important;
-      }
-      
-      .logo {
-        width: 44px !important;
-        height: 44px !important;
-        margin-bottom: 18px !important;
-      }
-      
-      .main-title {
-        font-size: 24px !important;
-        line-height: 30px !important;
-        margin-bottom: 6px !important;
-      }
-      
-      .subtitle {
-        font-size: 14px !important;
-        line-height: 20px !important;
-      }
-      
-      .content-section {
-        padding: 24px 20px !important;
-      }
-      
-      .text-block {
-        font-size: 15px !important;
-        line-height: 24px !important;
-        margin-bottom: 14px !important;
-      }
-      
-      .role-card {
-        padding: 18px 14px !important;
-        margin: 20px 0 !important;
-      }
-      
-      .role-label {
-        font-size: 10px !important;
-        margin-bottom: 6px !important;
-      }
-      
-      .role-name {
-        font-size: 18px !important;
-        line-height: 24px !important;
-        margin-bottom: 16px !important;
-      }
-      
-      .meta-row {
-        padding: 10px 0 !important;
-      }
-      
-      .meta-label {
-        font-size: 11px !important;
-      }
-      
-      .meta-value {
-        font-size: 14px !important;
-      }
-      
-      .cta-button {
-        padding: 14px 28px !important;
-        font-size: 15px !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        margin: 24px 0 20px !important;
-      }
-      
-      .link-text {
-        font-size: 12px !important;
-        margin-bottom: 10px !important;
-      }
-      
-      .link-box {
-        padding: 12px !important;
-        font-size: 11px !important;
-        line-height: 18px !important;
-      }
-      
-      .alert-box {
-        padding: 14px !important;
-        margin-top: 20px !important;
-        font-size: 13px !important;
-        line-height: 20px !important;
-      }
-      
-      .footer-section {
-        padding: 20px !important;
-      }
-      
-      .footer-text {
-        font-size: 12px !important;
-        line-height: 18px !important;
-      }
+    @media only screen and (max-width: 400px) {
+      .card { width: 100% !important; margin: 12px !important; }
+      .content { padding: 16px !important; }
+      .title { font-size: 18px !important; }
+      .btn { padding: 10px 20px !important; font-size: 13px !important; }
     }
   </style>
 </head>
 <body>
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" class="container" style="background:#f8fafc;padding:40px 20px;">
+  <table width="100%" cellspacing="0" cellpadding="0" style="background:#f0f4f8;padding:24px 12px;">
     <tr>
       <td align="center">
-        <!-- Main Content Wrapper -->
-        <table role="presentation" width="520" cellspacing="0" cellpadding="0" class="content-wrapper" style="max-width:520px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+        <!-- Compact Card - 40% smaller (312px instead of 520px) -->
+        <table class="card" width="312" cellspacing="0" cellpadding="0" style="max-width:312px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
           
-          <!-- Header Bar -->
+          <!-- Header with Logo -->
           <tr>
-            <td class="header-bar" style="background:#0f172a;color:#e2e8f0;padding:11px 20px;font-size:11px;letter-spacing:0.8px;text-align:center;text-transform:uppercase;font-weight:500;">
-              Partner Onboarding Platform
-            </td>
-          </tr>
-          
-          <!-- Header Section -->
-          <tr>
-            <td class="header-section" style="padding:32px 32px 24px;text-align:center;background:#fafafa;">
-              <!-- Logo -->
-              <div style="margin:0 auto 20px;text-align:center;">
-                ${EXTRAHAND_LOGO_SVG}
-              </div>
-              
-              <h1 class="main-title" style="margin:0 0 8px;font-size:28px;font-weight:600;color:#0f172a;line-height:36px;letter-spacing:-0.4px;">
-                You're Invited
-              </h1>
-              <p class="subtitle" style="margin:0;font-size:15px;color:#64748b;line-height:22px;font-weight:400;">
-                Join the ExtraHand ${roleDisplay} Team
-              </p>
-            </td>
-          </tr>
-          
-          <!-- Content Section -->
-          <tr>
-            <td class="content-section" style="padding:28px 32px 32px;">
-              <p class="text-block" style="margin:0 0 18px;font-size:15px;line-height:24px;color:#334155;font-weight:400;">
-                ${data.name ? `Hello ${data.name},` : 'Hello,'}
-              </p>
-              <p class="text-block" style="margin:0 0 20px;font-size:15px;line-height:24px;color:#334155;font-weight:400;">
-                You've been invited to join the ExtraHand Partner Onboarding Platform with the following role:
-              </p>
-
-              <!-- Role Card (Smaller) -->
-              <div class="role-card" style="background:#fafafa;border:1px solid #e2e8f0;border-radius:10px;padding:20px 20px;margin:24px 0;text-align:center;">
-                <div class="role-label" style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;font-weight:500;margin-bottom:8px;">
-                  Your Role
-                </div>
-                <div class="role-name" style="font-size:20px;color:#0f172a;font-weight:600;line-height:28px;letter-spacing:-0.2px;margin-bottom:${data.team || data.department ? '18px' : '0'};">
-                  ${roleDisplay}
-                </div>
-                
-                <!-- Meta Information (Conditional) -->
-                ${data.team || data.department ? `
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                  ${data.team ? `
-                  <tr class="meta-row" style="border-top:1px solid #e2e8f0;">
-                    <td style="padding:12px 0;text-align:left;">
-                      <span class="meta-label" style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;font-weight:500;">Team</span>
-                    </td>
-                    <td style="padding:12px 0;text-align:right;">
-                      <span class="meta-value" style="font-size:15px;color:#0f172a;font-weight:500;">${data.team}</span>
-                    </td>
-                  </tr>
-                  ` : ''}
-                  ${data.department ? `
-                  <tr class="meta-row" style="border-top:1px solid #e2e8f0;">
-                    <td style="padding:12px 0;text-align:left;">
-                      <span class="meta-label" style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;font-weight:500;">Department</span>
-                    </td>
-                    <td style="padding:12px 0;text-align:right;">
-                      <span class="meta-value" style="font-size:15px;color:#0f172a;font-weight:500;">${data.department}</span>
-                    </td>
-                  </tr>
-                  ` : ''}
-                </table>
-                ` : ''}
-              </div>
-
-              <!-- CTA Button (Solid Color, No Gradient) -->
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+            <td style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);padding:16px;text-align:center;">
+              <!-- Simple CB Logo -->
+              <table cellspacing="0" cellpadding="0" style="margin:0 auto;">
                 <tr>
-                  <td align="center" style="padding:28px 0 24px;">
-                    <a href="${data.inviteLink}" class="cta-button" style="display:inline-block;background:#f59e0b;color:#ffffff;text-decoration:none;padding:15px 40px;border-radius:8px;font-size:16px;font-weight:600;letter-spacing:0.2px;">
-                      Accept Invitation
-                    </a>
+                  <td style="background:#fff;width:36px;height:36px;border-radius:8px;text-align:center;vertical-align:middle;">
+                    <span style="font-size:16px;font-weight:700;color:#6366f1;">CB</span>
                   </td>
                 </tr>
               </table>
-
-              <!-- Link Section -->
-              <p class="link-text" style="margin:0 0 12px;font-size:13px;color:#94a3b8;text-align:center;font-weight:400;">
-                Or copy and paste this link into your browser:
-              </p>
-              <div class="link-box" style="background:#fafafa;border:1px solid #e2e8f0;border-radius:6px;padding:14px;font-size:12px;color:#475569;font-family:'SF Mono',Monaco,'Cascadia Code',monospace;word-break:break-all;text-align:center;line-height:20px;">
-                ${data.inviteLink}
-              </div>
-
-              <!-- Alert Box (Subtle Gray-Blue Background) -->
-              <div class="alert-box" style="margin-top:24px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:8px;padding:16px 18px;">
-                <div style="font-size:14px;color:#475569;line-height:22px;font-weight:400;">
-                  <span style="font-weight:600;color:#334155;">Important:</span> This invitation expires on <span style="font-weight:600;color:#334155;">${expiryDate}</span>. Please accept it before the specified date.
-                </div>
-              </div>
+              <p style="margin:8px 0 0;font-size:10px;color:rgba(255,255,255,0.9);letter-spacing:1px;text-transform:uppercase;">CognitBotz HRMS</p>
             </td>
           </tr>
-
+          
+          <!-- Welcome Message -->
+          <tr>
+            <td class="content" style="padding:20px 18px 12px;text-align:center;">
+              <h1 class="title" style="margin:0 0 4px;font-size:20px;font-weight:600;color:#1e293b;">Welcome, ${data.firstName || 'Team Member'}!</h1>
+              <p style="margin:0;font-size:12px;color:#64748b;">Complete your registration to get started</p>
+            </td>
+          </tr>
+          
+          <!-- Employee Details Card -->
+          <tr>
+            <td style="padding:0 18px 16px;">
+              <table width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+                
+                <!-- Name -->
+                <tr>
+                  <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;">
+                    <table width="100%" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Name</td>
+                        <td style="font-size:13px;color:#1e293b;font-weight:500;text-align:right;">${data.firstName || ''} ${data.lastName || ''}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                
+                <!-- Employee ID -->
+                ${data.employeeId ? `
+                <tr>
+                  <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;">
+                    <table width="100%" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Employee ID</td>
+                        <td style="font-size:13px;color:#6366f1;font-weight:600;text-align:right;">${data.employeeId}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                ` : ''}
+                
+                <!-- Designation -->
+                <tr>
+                  <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;">
+                    <table width="100%" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Designation</td>
+                        <td style="font-size:13px;color:#1e293b;font-weight:500;text-align:right;">${roleDisplay}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                
+                <!-- Department -->
+                ${data.department ? `
+                <tr>
+                  <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;">
+                    <table width="100%" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Department</td>
+                        <td style="font-size:13px;color:#1e293b;font-weight:500;text-align:right;">${data.department}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                ` : ''}
+                
+                <!-- Phone -->
+                ${data.phone ? `
+                <tr>
+                  <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;">
+                    <table width="100%" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Phone</td>
+                        <td style="font-size:13px;color:#1e293b;font-weight:500;text-align:right;">${data.phone}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                ` : ''}
+                
+                <!-- Joining Date -->
+                ${joiningDateFormatted ? `
+                <tr>
+                  <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;">
+                    <table width="100%" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Joining Date</td>
+                        <td style="font-size:13px;color:#1e293b;font-weight:500;text-align:right;">${joiningDateFormatted}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                ` : ''}
+                
+                <!-- Salary -->
+                ${salaryFormatted ? `
+                <tr>
+                  <td style="padding:10px 12px;border-bottom:1px solid #e2e8f0;">
+                    <table width="100%" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Salary (CTC)</td>
+                        <td style="font-size:13px;color:#059669;font-weight:600;text-align:right;">${salaryFormatted}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                ` : ''}
+                
+                <!-- Reporting Manager -->
+                ${data.reportingManager ? `
+                <tr>
+                  <td style="padding:10px 12px;">
+                    <table width="100%" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Reports To</td>
+                        <td style="font-size:13px;color:#1e293b;font-weight:500;text-align:right;">${data.reportingManager}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                ` : ''}
+                
+              </table>
+            </td>
+          </tr>
+          
+          <!-- CTA Button -->
+          <tr>
+            <td style="padding:0 18px 16px;text-align:center;">
+              <a href="${data.inviteLink}" class="btn" style="display:inline-block;background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);color:#fff;text-decoration:none;padding:12px 32px;border-radius:6px;font-size:14px;font-weight:600;">
+                Complete Registration →
+              </a>
+            </td>
+          </tr>
+          
+          <!-- Expiry Notice -->
+          <tr>
+            <td style="padding:0 18px 16px;">
+              <table width="100%" cellspacing="0" cellpadding="0" style="background:#fef3c7;border-radius:6px;border:1px solid #fcd34d;">
+                <tr>
+                  <td style="padding:10px 12px;font-size:11px;color:#92400e;text-align:center;">
+                    ⏰ Link expires on <strong>${expiryDate}</strong>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
           <!-- Footer -->
           <tr>
-            <td class="footer-section" style="background:#fafafa;padding:24px 32px;text-align:center;border-top:1px solid #e2e8f0;">
-              <p class="footer-text" style="margin:0 0 6px;font-size:13px;color:#94a3b8;line-height:20px;font-weight:400;">
-                Automated message from ExtraHand
-              </p>
-              <p class="footer-text" style="margin:0;font-size:12px;color:#cbd5e1;font-weight:400;">
-                © ${new Date().getFullYear()} ExtraHand. All rights reserved.
-              </p>
+            <td style="background:#f8fafc;padding:12px 18px;text-align:center;border-top:1px solid #e2e8f0;">
+              <p style="margin:0;font-size:10px;color:#94a3b8;">© ${new Date().getFullYear()} CognitBotz. All rights reserved.</p>
             </td>
           </tr>
+          
         </table>
       </td>
     </tr>
   </table>
 </body>
 </html>
-  `;
+    `;
   },
 
   text: (data: AdminInviteTemplateData) => {
-    const roleDisplay = data.role.charAt(0).toUpperCase() + data.role.slice(1);
+    const roleDisplay = data.role ? data.role.charAt(0).toUpperCase() + data.role.slice(1) : 'Employee';
     const expiryDate = new Date(data.expiresAt).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
@@ -315,22 +251,25 @@ export const adminInviteTemplate: EmailTemplate = {
     });
 
     return `
-EXTRAHAND - You're Invited to Join the Admin Team
+COGNITBOTZ HRMS - Employee Registration
 
-${data.name ? `Hello ${data.name},` : "Hello,"}
+Welcome, ${data.firstName || 'Team Member'}!
 
-You've been invited to the ExtraHand Partner Onboarding Platform.
+Your Details:
+- Name: ${data.firstName || ''} ${data.lastName || ''}
+${data.employeeId ? `- Employee ID: ${data.employeeId}` : ''}
+- Designation: ${roleDisplay}
+${data.department ? `- Department: ${data.department}` : ''}
+${data.phone ? `- Phone: ${data.phone}` : ''}
+${data.joiningDate ? `- Joining Date: ${data.joiningDate}` : ''}
+${data.salary ? `- Salary: ₹${data.salary}` : ''}
+${data.reportingManager ? `- Reports To: ${data.reportingManager}` : ''}
 
-Role: ${roleDisplay}
-${data.team ? `Team: ${data.team}` : ""}
-${data.department ? `Department: ${data.department}` : ""}
+Complete your registration: ${data.inviteLink}
 
-Accept invite: ${data.inviteLink}
+This link expires on ${expiryDate}.
 
-Important: This invite expires on ${expiryDate}. Please accept it before then.
-
-This is an automated message from ExtraHand.
-© ${new Date().getFullYear()} ExtraHand. All rights reserved.
-  `;
+© ${new Date().getFullYear()} CognitBotz. All rights reserved.
+    `;
   },
 };

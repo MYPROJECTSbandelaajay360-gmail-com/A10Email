@@ -80,12 +80,12 @@ export class SMTPProvider {
           content: att.content,
           contentType: att.contentType || 'application/octet-stream',
         };
-        
+
         // Add CID for inline images (nodemailer uses 'cid' property)
         if (att.cid) {
           attachment.cid = att.cid; // CID without 'cid:' prefix
         }
-        
+
         logger.debug('Prepared attachment for email', {
           filename: att.filename,
           hasCid: !!att.cid,
@@ -93,7 +93,7 @@ export class SMTPProvider {
           contentType: attachment.contentType,
           contentSize: Buffer.isBuffer(att.content) ? att.content.length : typeof att.content === 'string' ? att.content.length : 'unknown',
         });
-        
+
         return attachment;
       });
 
@@ -140,6 +140,13 @@ export class SMTPProvider {
       });
 
       const info = await this.transporter.sendMail(mailOptions);
+
+      console.log('\n\n************************************************');
+      console.log('✅ EMAIL SENT SUCCESSFULLY via SMTP');
+      console.log('To:', payload.to);
+      console.log('MessageID:', info.messageId);
+      console.log('Accepted:', info.accepted);
+      console.log('************************************************\n\n');
 
       logger.info('Email sent successfully via SMTP', {
         messageId: info.messageId,
