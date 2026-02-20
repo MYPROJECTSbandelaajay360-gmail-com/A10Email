@@ -7,7 +7,12 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "prod": "NODE_ENV=production node dist/server.js"
+    "prod": "NODE_ENV=production node dist/server.js",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop musterbook-email",
+    "pm2:restart": "pm2 restart musterbook-email",
+    "pm2:reload": "pm2 reload musterbook-email",
+    "pm2:logs": "pm2 logs musterbook-email"
   },
   "engines": {
     "node": ">=18"
